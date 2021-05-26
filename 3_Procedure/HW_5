@@ -1,0 +1,21 @@
+use employees;
+
+delimiter //
+create procedure dismissal(in empl_id int, in dismiss_date date)
+begin
+declare exit handler for sqlexception
+	begin
+		rollback;
+        select 'something wrong';
+	end;
+     start transaction;
+        if( dismiss_date is null ) then set dismiss_date=curdate();
+		end if;
+		UPDATE dept_emp SET to_date = dismiss_date WHERE (emp_no = empl_id) and (to_date = '9999-01-01');
+        UPDATE salaries SET to_date = dismiss_date WHERE (emp_no = empl_id) and (to_date = '9999-01-01');
+        UPDATE titles SET to_date = dismiss_date WHERE (emp_no = empl_id) and (to_date = '9999-01-01');
+	 commit;
+end//
+delimiter ;
+
+call dismissal(10019, null);
