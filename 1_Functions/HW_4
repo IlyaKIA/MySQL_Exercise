@@ -1,0 +1,31 @@
+use geodata;
+Create view MoscowInTheWorld 
+as Select cit.title_ru as "Город", reg.title_ru as "Регион", cou.title_ru as "Страна" 
+from _cities as cit
+left join _regions as reg on cit.region_id = reg.region_id
+left join _countries as cou on cit.country_id = cou.country_id
+where cit.title_ru = "Москва";
+
+use employees;
+
+DELIMITER $$ 
+create function `empNumManager` (first_last_name varchar(45)) returns int
+reads sql data
+begin
+declare tab_no int;
+Select emp.emp_no as name into @tab_no
+from employees as emp
+inner join dept_manager as d_m on d_m.emp_no=emp.emp_no
+where concat(first_name, ' ', last_name)=first_last_name;
+return(
+select ifnull(@tab_no, '0'), @tab_no
+);
+end $$
+
+CREATE DEFINER=`root`@`localhost` TRIGGER `employees_AFTER_INSERT` AFTER INSERT ON `employees` FOR EACH ROW BEGIN
+declare tab_no int;
+Select emp.emp_no as name into @tab_no
+from employees as emp
+ORDER BY emp_no DESC LIMIT 1;
+insert into salaries (emp_no, salary, from_date, to_date) values (@tab_no, '1000', curdate(), curdate());
+END
