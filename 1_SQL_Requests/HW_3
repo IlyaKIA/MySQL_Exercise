@@ -1,0 +1,55 @@
+use geodata;
+
+-- Полный адрес города 
+Select cit.title_ru as "Город", reg.title_ru as "Регион", cou.title_ru as "Страна" 
+from _cities as cit
+left join _regions as reg on cit.region_id = reg.region_id
+left join _countries as cou on reg.country_id = cou.country_id
+where cit.title_ru = "Москва";
+
+-- Все города МО 
+SELECT cit.title_ru as "Города МО"
+from _cities as cit
+inner join _regions as reg on reg.region_id = cit.region_id
+where reg.title_ru like "Московская%";
+
+use employees;
+
+-- Средняя ЗП отдела
+Select dep.dept_name as 'Отдел', avg(sal.salary) as 'Средняя ЗП'
+from salaries as sal
+inner join dept_emp as d_e on d_e.emp_no = sal.emp_no
+inner join departments as dep on dep.dept_no = d_e.dept_no
+where d_e.to_date = '9999-01-01'
+group by dep.dept_no;
+
+-- Макс ЗП сотрудника
+Select concat(emp.first_name, ' ', emp.last_name) as 'Сотрудник', max(sal.salary) as 'Максимальная ЗП'
+from salaries as sal
+inner join employees as emp on sal.emp_no=emp.emp_no
+inner join dept_emp as d_e on d_e.emp_no = sal.emp_no
+where d_e.to_date = '9999-01-01'
+group by sal.emp_no;
+
+-- Кол-во сотрудников отделов 
+Select dep.dept_name as 'Отдел', count(emp.emp_no) as 'Кол-во сотрудников'
+from employees as emp
+inner join dept_emp as d_e on d_e.emp_no = emp.emp_no
+inner join departments as dep on dep.dept_no = d_e.dept_no
+where d_e.to_date = '9999-01-01'
+group by dep.dept_name
+order by dep.dept_name;
+
+-- Последние ЗП по отделам 
+Select dep.dept_name as 'Отдел', count(emp.emp_no) as 'Кол-во сотрудников', sum(sal.salary) as 'Суммарная ЗП'
+from employees as emp
+inner join salaries as sal on sal.emp_no=emp.emp_no
+inner join dept_emp as d_e on d_e.emp_no = emp.emp_no
+inner join departments as dep on dep.dept_no = d_e.dept_no
+where d_e.to_date = '9999-01-01' and sal.to_date = '9999-01-01'
+group by dep.dept_name
+order by dep.dept_name;
+
+-- Удаление сотрудника (в базе установлено каскадное удаление)
+delete from employees
+where emp_no=(Select sal.emp_no	from salaries as sal where  sal.salary = (Select max(sal.salary) from salaries as sal));
